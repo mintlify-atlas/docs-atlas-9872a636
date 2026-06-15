@@ -1,0 +1,67 @@
+---
+title: "leaftext: A calm desktop reader for Markdown"
+sidebarTitle: "Introduction"
+description: "leaftext renders Markdown locally on macOS, Windows, and Linux. No browser, no editor — just clean, complete rendering of your files."
+---
+
+leaftext is a calm desktop application for reading Markdown files. It is not a text editor, not a browser tab, and not a cloud service — it is a single-purpose tool that opens a `.md` file and renders it exactly as it was meant to be read. No distractions, no latency, no accounts required. Just open a file and read it.
+
+The goal is a quiet reading experience: the kind you get from a well-typeset document, available instantly from your local filesystem.
+
+## What leaftext renders
+
+leaftext provides full **CommonMark + GitHub Flavored Markdown (GFM)** support, covering headings (H1–H6), paragraphs, bold, italic, bold-italic, blockquotes, ordered and unordered lists, tables, strikethrough, task lists, autolink literals, horizontal rules, and escaped Markdown characters.
+
+On top of the baseline spec, leaftext also handles the **GitHub extras** you rely on in real documents:
+
+- **Syntax-highlighted code blocks** — powered by [syntect](https://github.com/trishume/syntect), with theme-aware colours in both light and dark modes
+- **Mermaid diagrams** — rendered inline, with a readable plain-text fallback if the diagram cannot be parsed
+- **Inline and block math** — LaTeX expressions rendered natively, with a readable fallback
+- **Alert callouts** — GitHub-style `> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`, `> [!IMPORTANT]`, and `> [!CAUTION]` blocks
+- **Footnotes** — with back-references so you can jump between a footnote marker and its definition
+- **Emoji shortcodes** — `:shipit:` and the full set of GitHub-supported codes
+- **Issue, PR, and commit references** — `#123`, `org/repo#456`, and full commit SHAs linkified
+- **User and team mentions** — `@username` and `@org/team` rendered as links
+
+Local images work too: relative paths (`./`, `../`), paths with spaces, nested directories, and SVG files all resolve from the opened file's location through a scoped custom protocol — no web server needed.
+
+## How it works
+
+leaftext is a native **Rust** application. Windowing is handled by [tao](https://github.com/tauri-apps/tao) and the document is displayed inside a [wry](https://github.com/tauri-apps/wry) WebView — a platform-native web renderer (WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux). This means leaftext has a real native window and OS integration while still being able to render rich HTML output from Markdown.
+
+Markdown parsing is done by [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark). Before the rendered HTML is handed to the WebView, it passes through [ammonia](https://github.com/nicowillis/ammonia) for sanitization: scripts, styles, event handlers, and dangerous URLs are stripped, while the full set of safe GFM HTML tags is preserved.
+
+The result is a rendering pipeline that is both complete and safe — you can open any Markdown file without worrying about what it might contain.
+
+<Note>
+  leaftext uses your operating system's built-in WebView, so no Chromium or
+  Electron runtime is bundled. The binary stays small and startup is near
+  instant.
+</Note>
+
+## What leaftext is not
+
+leaftext is a **reader**, not an editor. There is no text input, no preview pane split, and no save function. If you want to edit a file, open it in your editor of choice; leaftext will reflect file changes automatically.
+
+It is also not a browser extension, not a hosted service, and not a subscription product. Your files never leave your machine.
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/installation"
+  >
+    Download the pre-built binary for macOS, Windows, or Linux and get leaftext
+    running in under a minute.
+  </Card>
+  <Card
+    title="Quickstart"
+    icon="bolt"
+    href="/quickstart"
+  >
+    Open your first file, explore the minimap, and learn the handful of
+    keyboard shortcuts that cover the whole app.
+  </Card>
+</CardGroup>

@@ -1,0 +1,171 @@
+---
+title: "Markdown Rendering in leaftext: CommonMark + GFM"
+sidebarTitle: "Markdown Rendering"
+description: "leaftext renders the full CommonMark spec and GitHub Flavored Markdown, plus GitHub extras: syntax highlighting, Mermaid, math, alerts, footnotes, and emoji."
+---
+
+leaftext renders Markdown using [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark) with CommonMark and GitHub Flavored Markdown extensions fully enabled. The Rust renderer runs in-process — there is no external process or network call, so rendering is instant regardless of document size.
+
+## CommonMark + GFM support
+
+leaftext covers the full CommonMark specification and all GFM extensions:
+
+| Element | Syntax |
+|---------|--------|
+| Headings | `# H1` through `###### H6` (ATX) and setext style |
+| Paragraphs | Standard block paragraphs |
+| Bold | `**text**` or `__text__` |
+| Italic | `*text*` or `_text_` |
+| Bold-italic | `***text***` or `___text___` |
+| Blockquotes | `> quoted text` |
+| Ordered lists | `1. first`, `2. second`, … |
+| Unordered lists | `- item`, `+ item`, `* item` |
+| Tables | GFM pipe tables with optional alignment |
+| Strikethrough | `~~struck~~` |
+| Task lists | `- [ ] unchecked` / `- [x] checked` |
+| Autolink literals | Bare `https://` URLs and `www.` domains linkified automatically |
+| Horizontal rules | `---`, `***`, `___` |
+| Escaped characters | `\*literal asterisk\*` |
+| Code (inline) | `` `inline code` `` |
+| Code blocks | Fenced (` ``` `) and tilde (`~~~`) and indented |
+| Links | `[text](url)`, reference-style `[text][id]`, and autolinks |
+| Images | `![alt](src "title")` |
+
+## GitHub extras
+
+Beyond the core spec, leaftext implements the same rendering pipeline GitHub uses for repository Markdown.
+
+### Syntax-highlighted code blocks
+
+Fenced code blocks with a language tag are highlighted using [syntect](https://github.com/trishume/syntect) and the [two-face](https://github.com/CosmicHorrorDev/two-face) syntax bundle. A language badge appears in the top-right corner of every highlighted block, and a **Copy** button lets you copy the code to the clipboard.
+
+Supported languages include: TypeScript (`ts`, `tsx`), JavaScript (`js`, `jsx`), JSON / JSONC, HTML, CSS / SCSS, Markdown, Bash / Shell / Zsh, YAML / TOML / XML / INI, Rust, Python, SQL, Diff / Patch, Dotenv, Dockerfile, GraphQL, and plain Text. Unknown identifiers fall back to escaped plain-text with the identifier shown as the badge.
+
+```rust
+pub fn main() {
+    println!("Hello from leaftext");
+}
+```
+
+### Mermaid diagrams
+
+Code blocks tagged `` ```mermaid `` are rendered as interactive diagrams using the [Mermaid](https://mermaid.js.org/) runtime (loaded on demand from a CDN). All diagram types are supported, including flowcharts, sequence diagrams, ER diagrams, xychart-beta, and block diagrams.
+
+YAML front-matter (a `---` block at the top of the diagram source) is stripped before the source is handed to the Mermaid runtime, which handles directives like `%%{init: ...}%%` directly.
+
+<Note>
+  Mermaid and math have readable plain-text fallbacks. If a Mermaid diagram fails to render, the raw source is displayed inside a `<pre>` block instead of showing a broken element — your document stays readable even offline.
+</Note>
+
+### Inline and block math
+
+Math is rendered as `<span class="math math-inline">` and `<span class="math math-display">` respectively:
+
+- **Inline**: surround with `$...$`
+- **Block**: surround with `$$...$$` on its own lines
+
+The source is always preserved in the span's text content, so if a MathJax or KaTeX renderer is not available the raw LaTeX source is visible rather than a blank space.
+
+### Alert callouts
+
+GitHub-style alert blockquotes are supported with five severity levels:
+
+```md
+> [!NOTE]
+> Useful context that readers should be aware of.
+
+> [!TIP]
+> Optional advice to help readers succeed.
+
+> [!IMPORTANT]
+> Information that readers must not miss.
+
+> [!WARNING]
+> Risky content that could cause issues.
+
+> [!CAUTION]
+> Dangerous action with potential consequences.
+```
+
+Each alert is styled with a distinct accent color drawn from the active theme's semantic tokens, so all five variants look correct in both light and dark mode and in the Dracula theme.
+
+### Footnotes with back-references
+
+Standard Markdown footnote syntax is supported:
+
+```md
+Text with a footnote.[^1]
+
+[^1]: The footnote definition, rendered at the end of the document.
+```
+
+Each footnote reference renders as a superscript link to the definition. The definition includes a back-reference arrow (rendered as an SVG icon) that scrolls back to the in-text citation.
+
+### Emoji shortcodes
+
+A curated set of GitHub emoji shortcodes is resolved to their Unicode glyphs at render time:
+
+| Shortcode | Glyph |
+|-----------|-------|
+| `:shipit:` | 🚢 |
+| `:rocket:` | 🚀 |
+| `:tada:` | 🎉 |
+| `:warning:` | ⚠️ |
+| `:white_check_mark:` | ✅ |
+
+Unrecognised shortcodes are left as-is in the rendered output.
+
+### Issue, PR, and commit references
+
+When leaftext detects a `.git/config` file in any ancestor directory of the opened document, it reads the remote URL and auto-links GitHub-style references:
+
+| Reference | Example | Links to |
+|-----------|---------|----------|
+| Issue / PR | `#123` or `GH-456` | `github.com/{owner}/{repo}/issues/{n}` |
+| Cross-repo | `owner/repo#789` | `github.com/owner/repo/issues/{n}` |
+| Commit SHA | `a1b2c3d` (7 or 40 hex chars) | `github.com/{owner}/{repo}/commit/{sha}` |
+
+References outside a Git repository context are left as plain text.
+
+### User and team mentions
+
+`@username` and `@org/team` patterns are wrapped in a styled badge element. They are not linked (leaftext is a local reader, not a GitHub client), but they are visually distinguished from surrounding prose.
+
+## Local images
+
+leaftext serves local images through a custom `leaf-image://` protocol, scoped to prevent access outside the opened file's directory tree. The renderer resolves image paths before the WebView sees them, so relative paths, paths with spaces, nested directories, and SVG files all load correctly.
+
+```md
+![diagram](./images/architecture.svg)
+![screenshot](../assets/screenshot.png)
+```
+
+**What resolves:**
+
+- Relative paths starting with `./` or `../`
+- Paths containing spaces (percent-encoded in the URL, decoded on disk)
+- Nested subdirectories at any depth
+- SVG, PNG, JPEG, GIF, APNG, AVIF, BMP, ICO, and WebP files
+
+**What is blocked:**
+
+Paths that escape the file's parent directory tree return HTTP 403. For example, `../../etc/passwd` is blocked even when the `leaf-image://` URL is manually crafted to traverse upward past the scope root.
+
+## Safe HTML
+
+Raw HTML inside Markdown is sanitized using [ammonia](https://github.com/nicowillis/ammonia) before it reaches the WebView.
+
+**Permitted tags:**
+
+`p`, `br`, `hr`, `a`, `strong`, `em`, `del`, `code`, `pre`, `img`, `ul`, `ol`, `li`, `blockquote`, `h1`–`h6`, `div`, `span`, `table`, `thead`, `tbody`, `tr`, `td`, `th`
+
+**What is stripped:**
+
+- `<script>` and `<style>` blocks and their contents
+- All event handlers (`onclick`, `onerror`, `onmouseover`, etc.)
+- `javascript:` and `vbscript:` URLs in `href` and `src` attributes
+- `style=` attributes (inline styles)
+- Any tag not on the allowlist (e.g. `<iframe>`, `<form>`, `<details>`)
+- Disallowed attributes on permitted tags
+
+Safe attributes such as `align`, `id`, `class`, `colspan`, `href`, `src`, `alt`, and `title` are preserved on the tags that legitimately use them, so `id=` anchors used by GitHub README navigation continue to work.

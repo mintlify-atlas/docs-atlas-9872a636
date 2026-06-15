@@ -1,0 +1,69 @@
+---
+title: "Navigation history and multi-tab reading in leaftext"
+sidebarTitle: "Navigation"
+description: "leaftext tracks document and scroll history like a browser. Use Back/Forward to move through opened files and in-document scroll jumps across multiple tabs."
+---
+
+leaftext maintains a full navigation history — both across documents and within a document's scroll positions — so you can move back and forward exactly like a browser. Each tab carries its own independent history, and scroll positions are stored as render-stable content anchors rather than pixel offsets, so they survive edits, live reloads, and tab switches.
+
+## Multi-tab viewing
+
+Every file you open in the same session gets its own tab. Each tab holds its own `DocumentHistory` (the list of files navigated within that tab) and `ScrollHistory` (internal heading/anchor jumps within a document).
+
+| Action | Shortcut |
+|--------|----------|
+| Open a file in a new tab | `Ctrl+O` / `Cmd+O` |
+| Close the active tab | `Ctrl+W` / `Cmd+W` or the **×** button on the tab |
+| Cycle forward through tabs | `Ctrl+Tab` |
+| Cycle backward through tabs | `Ctrl+Shift+Tab` |
+| Switch to home screen | Click the leaftext logo |
+
+You can also **drag tabs** to reorder them. Dragging is pointer-based (not HTML5 drag-and-drop) so it works reliably in the embedded WebView2 on Windows. Sliding animations show where the tab will land; other tabs shift to make room as you drag.
+
+## Document history
+
+Back and Forward navigate through the list of files you have opened within the active tab, the same way a browser tracks page history. Opening a new file from within a document (by clicking a Markdown link) pushes the destination onto the tab's history stack and clears any forward entries.
+
+| Action | Windows / Linux | macOS |
+|--------|----------------|-------|
+| Back | `Alt+←` | `Cmd+←` |
+| Forward | `Alt+→` | `Cmd+→` |
+| Back | Mouse side button (button 3) | — |
+| Forward | Mouse side button (button 4) | — |
+
+The Back and Forward buttons in the app bar reflect the active tab's state and are disabled when there is nowhere to go in that direction.
+
+<Tip>
+  Mouse side buttons trigger Back and Forward on Windows and Linux. If your mouse has extra thumb buttons, you can navigate leaftext history the same way you navigate a browser.
+</Tip>
+
+## Scroll history
+
+Internal heading and anchor jumps within a document — triggered by clicking a `[link](#section)` — are recorded in a separate `ScrollHistory` stack. Pressing Back after an in-document jump returns to the previous scroll position without navigating to a different file.
+
+Scroll positions are stored as **`ScrollAnchor`** values: a tuple of `{ section, block, offsetY }` where:
+
+- **`section`** — the slug of the nearest heading above the reader's top edge (or `null` above the first heading)
+- **`block`** — the ordinal of the content block within that section (the heading itself is block 0)
+- **`offsetY`** — the signed pixel offset of the reader's top edge from the block's top
+
+Because anchors are expressed in terms of content blocks rather than pixel offsets, they survive document edits and full re-renders. Switching back to a tab, triggering a live reload, or navigating history all land back on the same paragraph — even if text above it has grown or shrunk since the position was recorded.
+
+## Live reload
+
+When the file backing an open tab changes on disk, leaftext reloads it automatically and preserves the reader's scroll position. The reload is driven by a filesystem watcher ([notify-debouncer-mini](https://github.com/notify-rs/notify)) pointed at the **parent directory** of the active file rather than the file itself. Watching the parent directory survives editors that save by writing a temporary file and atomically renaming it over the original.
+
+**How it works:**
+
+1. The watcher debounces events with a 200 ms window so a burst of filesystem events from a single save coalesces into one reload.
+2. The file is read and its contents are hashed (using the standard hasher). If the hash matches the last rendered version, the reload is skipped — no unnecessary re-render for duplicate or spurious events.
+3. If the contents changed, the document is re-rendered in place using `leafReloadDocument` (which preserves scroll position) rather than `leafSetState` (which would snap back to the top).
+4. The reader is re-pinned to its saved `ScrollAnchor` once the new layout settles.
+
+## Recent files
+
+The last **8** opened files are persisted locally in `recent-files.json` inside your leaftext config directory. They appear on the home screen (the no-file view) for quick reopening with a single click.
+
+When a file in the recent list can no longer be opened (for example, it was moved or deleted), it is removed from the list automatically so the same error does not recur on the next launch.
+
+Files are normalized before being added to the recent list: two different spellings of the same path (for example, `app/README.md` and `app/.tmp/../README.md`) collapse to a single entry, preserving the most recently accessed form.

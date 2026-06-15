@@ -1,0 +1,111 @@
+---
+title: "Install leaftext on macOS, Windows, and Linux"
+sidebarTitle: "Installation"
+description: "Download and install leaftext on your platform. Covers macOS DMG, Windows MSI, and Linux builds from the GitHub Releases page."
+---
+
+leaftext ships pre-built binaries for macOS (Apple Silicon), Windows (64-bit), and Linux through the [GitHub Releases page](https://github.com/ryanallen/leaftext/releases). There is no package manager step, no runtime to install separately, and no account required — download the file for your platform and follow the steps below.
+
+## Platform instructions
+
+<Tabs>
+  <Tab title="macOS">
+    **Requirements:** Apple Silicon Mac (M1 or later).
+
+    1. Go to the [Releases page](https://github.com/ryanallen/leaftext/releases) and download the latest `.dmg` file.
+    2. Open the DMG and drag **leaftext.app** onto the **Applications** shortcut in the window.
+    3. Eject the DMG.
+
+    **First-launch gatekeeper warning**
+
+    macOS quarantines applications downloaded from the internet and will block leaftext from opening if it was not installed through the App Store or signed with an Apple notarization certificate. If you see a dialog saying the app cannot be opened because it is from an unidentified developer, run the following command in Terminal after dragging leaftext to Applications:
+
+    ```sh
+    xattr -cr /Applications/leaftext.app
+    ```
+
+    This removes the quarantine extended attribute from the app bundle. After running it, open leaftext normally from Applications or Spotlight.
+
+    <Tip>
+      You only need to run the `xattr` command once. Subsequent launches will
+      open without any warning.
+    </Tip>
+  </Tab>
+  <Tab title="Windows">
+    **Requirements:** Windows 10 or later, 64-bit.
+
+    1. Go to the [Releases page](https://github.com/ryanallen/leaftext/releases) and download the latest `.msi` file.
+    2. Run the installer and follow the prompts. No additional runtime (such as .NET or Visual C++ Redistributable) is required.
+    3. leaftext will be available from the Start Menu after installation completes.
+
+    **Default install location**
+
+    ```text
+    C:\Program Files\leaftext\bin\leaftext.exe
+    ```
+
+    **WebView2 data path**
+
+    leaftext uses the platform WebView2 engine to render documents. Browser profile data (cache, cookies for local content) is stored in your user profile — not beside the executable — so it stays writable even though the binary lives under `Program Files`:
+
+    ```text
+    %LOCALAPPDATA%\ryanallen\leaftext\data\webview2
+    ```
+
+    <Note>
+      Because WebView2 data is stored in `%LOCALAPPDATA%` rather than next to
+      the executable, leaftext does not require administrator rights to run
+      after installation, and the data directory is personal to each Windows
+      user account.
+    </Note>
+
+    **Finding the installed executable path**
+
+    If you ever need the full path to `leaftext.exe` — for example, to create a custom shortcut or add it to your `PATH` — the quickest way to locate it is:
+
+    1. Right-click the leaftext shortcut in the **Start Menu**
+    2. Select **More** → **Open file location**
+    3. Right-click the **leaftext** shortcut that opens in Explorer
+    4. Select **Properties** → look at the **Target** field
+  </Tab>
+  <Tab title="Linux">
+    Linux builds are published on the [Releases page](https://github.com/ryanallen/leaftext/releases) alongside the macOS and Windows packages.
+
+    Download the build for your distribution, make the binary executable if needed, and run it directly:
+
+    ```sh
+    chmod +x leaftext
+    ./leaftext
+    ```
+
+    <Note>
+      leaftext uses WebKitGTK for rendering on Linux. If the app does not
+      launch, ensure your system has a compatible WebKitGTK library installed.
+      Most modern desktop Linux distributions include it by default.
+    </Note>
+  </Tab>
+</Tabs>
+
+## After installing
+
+<Steps>
+  <Step title="Launch leaftext">
+    Open leaftext from your Applications folder (macOS), Start Menu (Windows), or directly from the terminal (Linux). You will be greeted by the no-file view, which shows your recent files if any exist.
+  </Step>
+  <Step title="Open a Markdown file">
+    Press **Ctrl+O** on Windows or Linux, or **Cmd+O** on macOS, to open the file browser. Navigate to any `.md` file and select it. leaftext will render it immediately.
+
+    You can also drag and drop a `.md` file directly onto the leaftext window to open it.
+  </Step>
+  <Step title="Start reading">
+    That's it. leaftext renders your file with full CommonMark + GFM support, syntax highlighting, and a minimap for navigation. See the [Quickstart](/quickstart) for a tour of the interface.
+  </Step>
+</Steps>
+
+<Note>
+  WebView2 browser data on Windows is stored in `%LOCALAPPDATA%\ryanallen\leaftext\data\webview2`,
+  not beside `leaftext.exe` in `Program Files`. This is intentional: the user
+  profile directory is always writable without elevated permissions, so leaftext
+  can read and write its rendering data regardless of where the binary was
+  installed.
+</Note>

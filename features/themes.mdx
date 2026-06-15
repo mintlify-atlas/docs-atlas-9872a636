@@ -1,0 +1,72 @@
+---
+title: "Themes in leaftext: System, Light, Dark, and Dracula"
+sidebarTitle: "Themes"
+description: "leaftext ships four themes backed by a compiler-enforced semantic token contract: System (follows OS), Light, Dark, and Dracula. Switch instantly from Settings."
+---
+
+leaftext ships four themes — System, Light, Dark, and Dracula — all backed by a compiler-enforced semantic token contract that covers reader chrome, Markdown styles, syntax highlighting, and the minimap.
+
+## Available themes
+
+<AccordionGroup>
+  <Accordion title="System">
+    Follows the OS light/dark preference automatically via the `prefers-color-scheme` media query. When the system switches from light to dark, the app updates immediately without restart. System mode resolves `zh*` OS locales to Simplified Chinese for font selection, but the theme and language modes are independent settings.
+  </Accordion>
+  <Accordion title="Light">
+    A clean light palette built on GitHub Primer light primitives. Backgrounds, text colors, borders, and syntax highlighting all resolve through the Primer variable cascade (`--bgColor-default`, `--fgColor-default`, `--prettylights-syntax-*`, and so on), so they stay consistent with GitHub's reading experience.
+  </Accordion>
+  <Accordion title="Dark">
+    A dark palette built on GitHub Primer dark primitives — the same cascade as Light, resolved against the dark token set. Primer's dark mode passes WCAG AA contrast requirements on all text and code surfaces.
+  </Accordion>
+  <Accordion title="Dracula">
+    The Dracula color scheme, defined with literal hex values rather than Primer variables. Dracula supplies its own complete token set (`#282a36` background, `#f8f8f2` foreground, purple and green accents) and is activated through a dedicated `data-leaf-theme-source="dracula"` attribute on the root element, not through the Primer color-mode selectors.
+  </Accordion>
+</AccordionGroup>
+
+## The semantic token contract
+
+Every visual element in leaftext uses CSS custom properties defined by `LEAF_SEMANTIC_TOKEN_CONTRACT` — approximately 100 properties covering `--leaf-*` tokens for:
+
+- **App chrome** — `--leaf-app-background`, `--leaf-app-foreground`, borders, surfaces, shadows
+- **Markdown reading** — `--leaf-markdown-heading`, `--leaf-markdown-link`, blockquote borders, alert colors, table headers
+- **Code and syntax** — `--leaf-editor-code-background`, `--leaf-syntax-keyword`, `--leaf-syntax-string`, inserted/deleted diff colors
+- **Minimap** — `--leaf-minimap-heading`, `--leaf-minimap-paragraph`, `--leaf-minimap-code`, viewport border
+- **Focus and selection** — `--leaf-focus-ring`, `--leaf-focus-selection-background`
+
+At compile time, `compiled_theme_css()` in `lib.rs` calls `assert_theme_sources_cover_contract()`, which panics if any of the three theme sources (primer-light, primer-dark, dracula) is missing a token from the contract. This means no token is ever undefined at runtime — the CSS variable cascade never silently falls back to an inherited or initial value.
+
+```rust
+// Excerpt from lib.rs — called at compile time via OnceLock initialization
+fn assert_theme_sources_cover_contract(sources: &[ThemeSource]) {
+    for source in sources {
+        for token in LEAF_SEMANTIC_TOKEN_CONTRACT {
+            assert!(
+                theme_source_token_value(source, token).is_some(),
+                "theme source {} missing required token {token}",
+                source.id
+            );
+        }
+    }
+}
+```
+
+## Switching themes
+
+Open **Settings** in the app bar and choose a theme from the **Theme** selector. The change applies immediately without restart — the theme bootstrap script at the top of the app shell applies the new `data-color-mode`, `data-theme`, and `data-leaf-theme-source` attributes to the root element in the same frame.
+
+The selection is persisted to `{config_dir}/leaftext/settings.json` as the `theme_mode` field (`"system"`, `"light"`, `"dark"`, or `"dracula"`).
+
+## How themes are applied
+
+`reading_mode_css()` in `lib.rs` assembles the full style block injected into the WebView shell at startup. It concatenates, in order:
+
+1. **Noto fonts CSS** — `@font-face` declarations for Noto Sans, Noto Serif, and Noto Sans Mono embedded as `data:` URIs
+2. **Primer primitives CSS** — the GitHub Primer light and dark primitive variable sheets (`--base-color-*`, `--bgColor-*`, `--fgColor-*`, `--prettylights-syntax-*`)
+3. **Compiled theme CSS** — the output of `compiled_theme_css()`, which maps each `--leaf-*` semantic token to the right Primer or Dracula value under the appropriate CSS selector
+4. **Application CSS** — layout, typography, reader chrome, code block styles, minimap geometry, and responsive breakpoints
+
+The theme bootstrap script (`theme_bootstrap_script()`) runs before any page script to apply the persisted mode on the first paint, avoiding a flash of the wrong theme.
+
+<Note>
+  The System theme resolves `zh*` OS locales to Simplified Chinese for font selection (`Noto Sans SC`, `PingFang SC`, `Microsoft YaHei`). Theme and language modes are independent settings — choosing Dracula does not change the UI language, and choosing Simplified Chinese does not change the color scheme.
+</Note>

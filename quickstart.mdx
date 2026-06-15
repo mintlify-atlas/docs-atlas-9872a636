@@ -1,47 +1,91 @@
 ---
-title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+title: "Get started with leaftext in minutes"
+sidebarTitle: "Quickstart"
+description: "Open your first Markdown file in leaftext and learn the core interface: tabs, navigation history, minimap, and the library pane."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+After installing leaftext, the whole app fits in a handful of gestures. There are no settings to configure before you start and no account to create — open a file and start reading. This page walks through opening your first file and introduces the main interface elements so you feel at home immediately.
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+<Tip>
+  You can drag and drop any `.md` file directly onto the leaftext window to
+  open it instantly, without touching the keyboard or the file picker.
+</Tip>
 
-## Prerequisites
-
-Before you begin, you must have:
-
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
-
-## Get started
+## Opening your first file and exploring the interface
 
 <Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+  <Step title="Open a file">
+    Press **Ctrl+O** on Windows or Linux, or **Cmd+O** on macOS. The native file picker opens — navigate to any `.md` file and confirm. leaftext renders it immediately in the main reading pane.
 
-    ```bash
-    npm install your-package
-    ```
+    Alternatively:
+
+    - **Drag and drop** a `.md` file from your file manager directly onto the leaftext window.
+    - **Recent Files** — if you have opened files before, they appear on the no-file view when no document is loaded. Click any entry to reopen it without using the file picker. leaftext remembers the last 8 opened files.
   </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+  <Step title="Read the document">
+    Scroll through the document using your mouse wheel, trackpad, or keyboard arrow keys as you normally would in any application.
 
-    ```bash
-    your-cli init
-    ```
+    On the right side of the window you will see the **minimap**: a scaled overview of the entire document with a shaded band showing your current viewport position. Click or drag anywhere on the minimap to jump to that part of the document. Heading markers in the minimap make it easy to navigate long files at a glance.
+
+    <Note>
+      The minimap is responsive: it becomes narrower on medium-width windows and
+      hides automatically on small windows to give the document more room.
+      You can also toggle it from **Settings** in the app bar.
+    </Note>
   </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+  <Step title="Open a second file in a new tab">
+    Press **Ctrl+O** (Windows/Linux) or **Cmd+O** (macOS) while a document is already open. leaftext opens the new file in a **new tab** rather than replacing the current one. Switch between tabs by clicking the tab titles in the tab bar at the top of the window.
 
-    ```bash
-    your-cli start
-    ```
+    Each tab maintains its own scroll position and navigation history independently.
+  </Step>
+  <Step title="Navigate history">
+    leaftext records a navigation history for each tab — both documents you have opened and in-document jumps you have made (such as clicking a heading in the minimap). You can move through that history just like a browser:
+
+    | Direction | Windows / Linux | macOS |
+    |-----------|----------------|-------|
+    | Back | **Alt+←** | **Cmd+←** |
+    | Forward | **Alt+→** | **Cmd+→** |
+
+    If your mouse has side buttons, those work too — the back and forward side buttons navigate history without requiring the keyboard.
+
+    When you go back after a minimap jump, leaftext returns to the scroll position you were at before the jump, not just the top of the previous document.
+  </Step>
+  <Step title="Close a tab">
+    Press **Ctrl+W** on Windows or Linux, or **Cmd+W** on macOS, to close the current tab. You can also click the **X** button beside the navigation controls in the tab bar.
+
+    If only one tab is open, closing it returns you to the no-file view where you can open a new file or pick from recent files.
   </Step>
 </Steps>
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+## Keyboard shortcuts reference
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+| Action | Windows / Linux | macOS |
+|--------|----------------|-------|
+| Open file | **Ctrl+O** | **Cmd+O** |
+| Close tab | **Ctrl+W** | **Cmd+W** |
+| Navigate back | **Alt+←** | **Cmd+←** |
+| Navigate forward | **Alt+→** | **Cmd+→** |
+
+These five shortcuts cover the complete navigation model of leaftext. Everything else — scrolling, minimap interaction, tab switching — is handled with the mouse or trackpad.
+
+## Explore further
+
+<CardGroup cols={2}>
+  <Card
+    title="Navigation"
+    icon="arrow-left-arrow-right"
+    href="/features/navigation"
+  >
+    Learn more about the minimap, tab history, in-document jump tracking, and
+    mouse side-button support.
+  </Card>
+  <Card
+    title="Themes"
+    icon="palette"
+    href="/features/themes"
+  >
+    leaftext follows your OS light/dark preference automatically using a
+    semantic token system. Find out how theming works and what you can
+    customise.
+  </Card>
+</CardGroup>

@@ -1,0 +1,76 @@
+---
+title: "Settings and preferences in leaftext"
+sidebarTitle: "Settings"
+description: "leaftext persists your theme, minimap visibility, language, library configuration, and recent files. All settings are stored locally as JSON in the OS config directory."
+---
+
+leaftext saves your preferences locally — no account, no cloud sync. Settings are stored as JSON files in the OS-standard config directory and loaded on each launch. The WebView shell's opaque origin makes `localStorage` non-durable across restarts, so the Rust host owns all persistence and injects the saved values as a `window.__leafSettings` global before any page script runs.
+
+## Opening Settings
+
+Click **Settings** in the app bar (the sliders icon, top right). The panel opens as a dropdown below the icon. Press **Escape** or click anywhere outside the panel to close it. Every change takes effect immediately.
+
+## Available settings
+
+| Setting | Options | Default | Description |
+|---------|---------|---------|-------------|
+| Theme | System, Light, Dark, Dracula | System | Visual color scheme. System follows the OS light/dark preference automatically. |
+| Language | System, English, 简体中文 | System | UI language. System resolves `zh*` OS locales to Simplified Chinese; all other locales fall back to English. |
+| Minimap | On / Off | On | Show or hide the document minimap side rail. Off switches the reader to a centred single-column layout. |
+| Indexing | On / Off | Off | Enable or disable background Markdown file crawl across the device. Manually opened files are always added to the library regardless of this setting. |
+| Library view | Project, Tree, Flat | Project | Which layout the library pane uses. Project drills into folders one level at a time; Tree shows an expandable hierarchy; Flat lists all indexed files alphabetically. |
+
+## Storage locations
+
+All storage is local to your machine and follows the OS standard directories.
+
+| File | Purpose |
+|------|---------|
+| `{config_dir}/leaftext/settings.json` | Theme, language, minimap visibility, library layout, indexing toggle |
+| `{config_dir}/leaftext/recent-files.json` | Last 8 opened file paths |
+| `{local_data_dir}/leaftext/manifest.db` | Library index (SQLite) |
+| `%LOCALAPPDATA%\ryanallen\leaftext\data\webview2` | WebView2 browser data (Windows only) |
+
+The settings file is written on every change. The shape leaftext persists is:
+
+```json
+{
+  "indexing_enabled": true,
+  "minimap_enabled": true,
+  "theme_mode": "system",
+  "library_view": "tree",
+  "library_expanded": [],
+  "library_project_path": "",
+  "library_closed": false,
+  "library_width": 260
+}
+```
+
+The file uses `#[serde(default)]` on the `Settings` struct, so any field that is missing when the file is read (for example, after an upgrade adds a new preference) falls back to its default value rather than failing to load.
+
+## Recent files
+
+The last 8 opened files are shown on the no-file home screen so you can reopen them with a single click. They are stored in `recent-files.json` as a JSON array of absolute paths:
+
+```json
+{
+  "files": [
+    "/Users/alice/projects/api/README.md",
+    "/Users/alice/notes/daily.md"
+  ]
+}
+```
+
+When a file can no longer be opened (deleted or moved), leaftext removes it from the recent list automatically and saves the updated list, so the same error cannot recur.
+
+Path spellings are normalized on load — two entries that resolve to the same file (for example `app/README.md` and `app/.tmp/../README.md`) are collapsed to one, preserving the most recently seen spelling.
+
+## Localization
+
+The language setting controls all UI copy: button labels, settings descriptions, empty-state text, and aria labels. The app ships English and Simplified Chinese; both translation dictionaries are embedded in the WebView shell and applied without a network request.
+
+**System** language mode uses `navigator.languages` to detect the OS locale at runtime. Locales starting with `zh` resolve to Simplified Chinese (`zh-CN`); all other locales fall back to English. The selection is applied immediately without restart — a locale subscription in the app shell re-renders all static text and the current document state as soon as the mode changes.
+
+<Note>
+  On macOS, `config_dir` is `~/Library/Application Support`. On Windows it is `%APPDATA%`. On Linux it follows the XDG base directory spec (`$XDG_CONFIG_HOME`, defaulting to `~/.config`). `local_data_dir` on Windows is `%LOCALAPPDATA%`; on macOS it is the same as `config_dir`; on Linux it follows `$XDG_DATA_HOME` (defaulting to `~/.local/share`).
+</Note>

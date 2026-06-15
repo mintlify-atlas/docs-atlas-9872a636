@@ -1,0 +1,121 @@
+---
+title: "Library pane: browse and index Markdown files"
+sidebarTitle: "Library"
+description: "leaftext's library pane crawls your filesystem for Markdown files, stores a manifest in SQLite, and presents Project, Tree, and Flat views in a resizable side panel."
+---
+
+The library pane gives you a bird's-eye view of all your Markdown files. A background indexer crawls your device, stores file metadata in a local SQLite database, and keeps the view current. The pane sits to the left of the reader and can be resized, collapsed, or hidden entirely.
+
+## Library views
+
+The view picker (a compact dropdown in the pane header) toggles between three layouts:
+
+<Tabs>
+  <Tab title="Project">
+    **Project** view shows the Markdown files inside a single configured folder. The display drills into one folder at a time — clicking a folder navigates into it, and the back arrow at the top returns to its parent. This makes large repositories easy to explore without the visual noise of the full tree.
+
+    When you open a file, leaftext automatically drills the Project view into the file's containing folder and updates the configured project path, so the pane always shows context for whatever you are reading.
+  </Tab>
+  <Tab title="Tree">
+    **Tree** view shows the full folder hierarchy of all indexed Markdown files as nested `<details>` elements. Each folder can be expanded or collapsed independently, and expanded state is persisted so the same folders are open after a restart.
+
+    Folders that contain no Markdown files are pruned from the tree — empty branches never appear.
+  </Tab>
+  <Tab title="Flat">
+    **Flat** view shows a single alphabetically-sorted list of every indexed Markdown file, regardless of folder depth. Useful for searching through a large collection by filename when you do not remember the exact folder.
+  </Tab>
+</Tabs>
+
+The **currently open file** is highlighted in all three views. When you open a file (by clicking it in the OS file picker, from the recent list, or by following a Markdown link), the library automatically reveals and selects its row, expanding Tree ancestors and drilling the Project view to the file's folder.
+
+## The indexer
+
+The library is backed by a background indexer that crawls your device for Markdown files and stores a manifest in a local SQLite database.
+
+<Note>
+  The indexer uses WAL (Write-Ahead Logging) mode so reading the file tree is always fast, even during an active crawl. The reader thread holds its own read-only connection and answers `GetFileTree` requests immediately without waiting for any write to complete.
+</Note>
+
+### Manifest storage
+
+The manifest is stored at:
+
+```text
+{APP_DATA_DIR}/manifest.db
+```
+
+Where `APP_DATA_DIR` is the platform-specific local data directory for leaftext (for example, `%LOCALAPPDATA%\ryanallen\leaftext` on Windows, or `~/Library/Application Support/com.ryanallen.leaftext` on macOS). This is deliberately separate from the WebView2 cache subfolder so the manifest is never entangled with the embedded browser's storage.
+
+The database schema uses WAL mode and `PRAGMA synchronous = NORMAL` for a good balance of durability and performance. Foreign-key constraints and cascading deletes keep the schema consistent as files and scan roots are added or removed.
+
+### Crawl behaviour
+
+The indexer runs a breadth-first walk of all accessible filesystem roots (drive letters on Windows, `/` on Unix). Each file found is processed by a pool of **4 parallel parse/hash workers** that read the file, compute a [blake3](https://github.com/BLAKE3-team/BLAKE3) hash of its contents, and extract the document title and headings using the real Markdown parser.
+
+**Fast-path incremental updates:** Files whose `mtime`, `size`, and `derived_version` all match the stored record are not re-read or re-parsed — only their `last_seen_scan_id` is updated. This means repeated launch rescans are typically very fast for a large vault where most files have not changed.
+
+**Files over 2 MB** are skipped and recorded with `status = 'too_large'`. They do not appear in the library tree but are not lost — if the file shrinks below the limit on a future scan, it is indexed normally.
+
+**Skipped directories by name** (at any depth):
+
+`.git`, `.svn`, `.hg`, `node_modules`, `target`, `vendor`, `dist`, `build`, `.cache`, `.gradle`, `.m2`, `.venv`, `__pycache__`, `Pods`, `.next`, `.terraform`
+
+**Skipped system directories** (only when encountered directly under a detected filesystem root):
+
+`Library`, `AppData`, `Windows`, `Program Files`, `Program Files (x86)`, `ProgramData`, `System Volume Information`, `$RECYCLE.BIN`, `proc`, `sys`
+
+A folder named `Library` or `build` that lives deep inside user content is left alone — only root-level system directories are excluded.
+
+Symlinks and Windows reparse points (junctions) are never descended, preventing infinite loops.
+
+### Progress throttling
+
+To avoid flooding the UI during a large crawl, progress and tree events are throttled:
+
+| Event type | Throttle interval |
+|-----------|------------------|
+| Scan progress (files found count) | 150 ms |
+| Full tree snapshot | 1 500 ms |
+
+A progress indicator appears in the pane footer during a scan and is hidden once the crawl completes.
+
+### Missing file detection
+
+After each successfully completed root scan, files that were not seen in that scan run are marked `status = 'missing'` and removed from the library tree. Files on a root that was skipped due to a permission error or an I/O failure are never demoted — a partial scan cannot falsely mark reachable files as missing.
+
+Cancelling the scan (for example, by closing the app mid-crawl) also suppresses missing-marking, so existing indexed files are always preserved across interruptions.
+
+## Resizing and collapsing
+
+The library pane width is fully resizable by dragging the divider on its right edge. Behaviour at the edges:
+
+- **Snap-to-close:** dragging narrower than 40 px snaps the pane shut. The **open library** button (a small arrow icon) remains visible in the top-left of the reader so you can reopen it.
+- **Minimum reader width:** the pane is clamped so the reader column never shrinks below 360 px, keeping the document readable as the pane grows.
+- **Auto-hide on small windows:** if the window is too narrow to hold both a usable pane and a usable reader, the pane hides automatically regardless of the saved preference. Widening the window restores it.
+
+The following state is persisted in `settings.json` across restarts:
+
+| Setting | Description |
+|---------|-------------|
+| `library_closed` | Whether the user last closed the pane |
+| `library_width` | Last open width in CSS px |
+| `library_view` | Active view: `project`, `tree`, or `flat` |
+| `library_project_path` | Current folder in Project view |
+| `library_expanded` | Set of expanded folder paths in Tree view |
+
+## Enabling and disabling indexing
+
+Indexing is **off by default**. To enable it, open **Settings** (the sliders icon in the app bar) and toggle **Index entire device**.
+
+When enabled:
+
+1. A background crawl starts immediately on the next app launch.
+2. Any file you manually open is always indexed into the manifest regardless of this toggle, so the library pane reflects the files you are actively reading even with device-wide indexing off.
+
+When disabled:
+
+- The background crawl is not started and no new filesystem walking occurs.
+- The manifest from previous crawls is still read and displayed — disabling indexing does not delete existing data.
+- Manually opened files continue to be indexed as a side-effect of opening them.
+
+The setting is persisted by the Rust host (not by the WebView) so it survives restarts and takes effect immediately without reloading the app.

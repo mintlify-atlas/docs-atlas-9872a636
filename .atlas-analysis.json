@@ -1,0 +1,78 @@
+{
+  "projectType": "general",
+  "projectName": "leaftext",
+  "projectDescription": "A calm desktop Markdown reader for macOS, Windows, and Linux — open a file and read it, with clean rendering, tabs, navigation history, and a document minimap.",
+  "theme": "willow",
+  "primaryColor": "#1f6f43",
+  "lightColor": "#e8f5ee",
+  "darkColor": "#0f3d22",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/markdown-rendering",
+              "features/navigation",
+              "features/library",
+              "features/minimap",
+              "features/themes",
+              "features/settings"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/building",
+              "development/architecture",
+              "development/theming",
+              "development/releasing"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "CommonMark + GFM rendering (tables, task lists, strikethrough, autolinks)",
+    "GitHub extras: syntax highlighting, Mermaid diagrams, math, alert callouts, footnotes, emoji",
+    "Local image protocol (leaf-image://) for secure relative image resolution",
+    "Safe raw HTML via ammonia allowlist — scripts and dangerous URLs stripped",
+    "Document minimap with viewport indicator and click-to-jump",
+    "Back/Forward navigation history across documents and scroll positions",
+    "Multi-tab document viewer with drag-to-reorder",
+    "System theme (light/dark/Dracula) with compiler-backed semantic token contract",
+    "Library pane with Project/Tree/Flat views and SQLite indexer",
+    "Live reload on file change via filesystem watcher",
+    "Recent files (last 8, persisted)",
+    "Localization: English and Simplified Chinese",
+    "Drag-and-drop file opening"
+  ],
+  "publicApiSurface": [
+    "Keyboard shortcut: Ctrl+O / Cmd+O — open file",
+    "Keyboard shortcut: Ctrl+W / Cmd+W — close tab",
+    "Keyboard shortcut: Alt+← / Cmd+← — navigate back",
+    "Keyboard shortcut: Alt+→ / Cmd+→ — navigate forward",
+    "IpcCommand enum (main.rs) — WebView ↔ host message bus",
+    "UserEvent enum (main.rs) — custom tao event loop events",
+    "Settings struct (lib.rs) — persisted app preferences",
+    "render_markdown_document() (lib.rs) — Markdown → RenderedDocument",
+    "build_minimap_model() (lib.rs) — produces DocumentMinimap",
+    "local_image_protocol_response() (lib.rs) — serves local image bytes",
+    "compiled_theme_css() (lib.rs) — compile-time theme token CSS",
+    "app_shell_html() (lib.rs) — generates full HTML/CSS/JS application shell",
+    "Indexer (indexer.rs) — background SQLite crawler with FileTreeNode output",
+    "just verify — full check/test/format-check pipeline",
+    "just release <version> — cut a versioned release"
+  ]
+}

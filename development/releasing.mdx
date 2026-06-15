@@ -1,5 +1,5 @@
 ---
-title: "Cut a leaftext release with just release"
+title: "Cut a leaftext release with just release <version>"
 sidebarTitle: "Releasing"
 description: "leaftext uses a just release command to bump the version, tag, and push. CI automatically builds Windows MSI, macOS DMG, and Linux artifacts."
 ---
@@ -20,7 +20,7 @@ just release 0.2.0
 
 This executes the following two steps as defined in the `Justfile`:
 
-```
+```text
 release version:
     node --experimental-strip-types scripts/prepare-release.mts "{{ version }}" --no-sign-commit
     git push origin HEAD --follow-tags

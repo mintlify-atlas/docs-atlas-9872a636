@@ -1,7 +1,7 @@
 ---
-title: "Settings and preferences in leaftext"
+title: "Settings: theme, minimap, language, and library in leaftext"
 sidebarTitle: "Settings"
-description: "leaftext persists your theme, minimap visibility, language, library configuration, and recent files. All settings are stored locally as JSON in the OS config directory."
+description: "leaftext saves preferences locally as JSON: theme, minimap, language, library layout, and indexing. No account or cloud sync required."
 ---
 
 leaftext saves your preferences locally — no account, no cloud sync. Settings are stored as JSON files in the OS-standard config directory and loaded on each launch. The WebView shell's opaque origin makes `localStorage` non-durable across restarts, so the Rust host owns all persistence and injects the saved values as a `window.__leafSettings` global before any page script runs.
@@ -25,7 +25,7 @@ Click **Settings** in the app bar (the sliders icon, top right). The panel opens
 All storage is local to your machine and follows the OS standard directories.
 
 | File | Purpose |
-|------|---------|
+|------|---------| 
 | `{config_dir}/leaftext/settings.json` | Theme, language, minimap visibility, library layout, indexing toggle |
 | `{config_dir}/leaftext/recent-files.json` | Last 8 opened file paths |
 | `{local_data_dir}/leaftext/manifest.db` | Library index (SQLite) |

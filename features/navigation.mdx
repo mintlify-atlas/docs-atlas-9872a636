@@ -1,14 +1,14 @@
 ---
 title: "Navigation history and multi-tab reading in leaftext"
 sidebarTitle: "Navigation"
-description: "leaftext tracks document and scroll history like a browser. Use Back/Forward to move through opened files and in-document scroll jumps across multiple tabs."
+description: "leaftext tracks document and scroll history like a browser. Back/Forward moves through opened files and in-document scroll jumps across multiple tabs."
 ---
 
 leaftext maintains a full navigation history — both across documents and within a document's scroll positions — so you can move back and forward exactly like a browser. Each tab carries its own independent history, and scroll positions are stored as render-stable content anchors rather than pixel offsets, so they survive edits, live reloads, and tab switches.
 
 ## Multi-tab viewing
 
-Every file you open in the same session gets its own tab. Each tab holds its own `DocumentHistory` (the list of files navigated within that tab) and `ScrollHistory` (internal heading/anchor jumps within a document).
+Every file you open in the same session gets its own tab. Each tab holds its own independent document history (the list of files navigated within that tab) and scroll history (internal heading/anchor jumps within a document).
 
 | Action | Shortcut |
 |--------|----------|

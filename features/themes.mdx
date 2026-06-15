@@ -1,7 +1,7 @@
 ---
 title: "Themes in leaftext: System, Light, Dark, and Dracula"
 sidebarTitle: "Themes"
-description: "leaftext ships four themes backed by a compiler-enforced semantic token contract: System (follows OS), Light, Dark, and Dracula. Switch instantly from Settings."
+description: "leaftext ships four themes — System, Light, Dark, and Dracula — backed by a compiler-enforced token contract. Switch instantly from Settings."
 ---
 
 leaftext ships four themes — System, Light, Dark, and Dracula — all backed by a compiler-enforced semantic token contract that covers reader chrome, Markdown styles, syntax highlighting, and the minimap.
@@ -33,10 +33,10 @@ Every visual element in leaftext uses CSS custom properties defined by `LEAF_SEM
 - **Minimap** — `--leaf-minimap-heading`, `--leaf-minimap-paragraph`, `--leaf-minimap-code`, viewport border
 - **Focus and selection** — `--leaf-focus-ring`, `--leaf-focus-selection-background`
 
-At compile time, `compiled_theme_css()` in `lib.rs` calls `assert_theme_sources_cover_contract()`, which panics if any of the three theme sources (primer-light, primer-dark, dracula) is missing a token from the contract. This means no token is ever undefined at runtime — the CSS variable cascade never silently falls back to an inherited or initial value.
+At runtime, `compiled_theme_css()` in `lib.rs` calls `assert_theme_sources_cover_contract()`, which panics if any of the three theme sources (`primer-light`, `primer-dark`, `dracula`) is missing a token from the contract. This means no token is ever undefined at runtime — the CSS variable cascade never silently falls back to an inherited or initial value.
 
 ```rust
-// Excerpt from lib.rs — called at compile time via OnceLock initialization
+// Excerpt from lib.rs — called at first use via OnceLock lazy initialization
 fn assert_theme_sources_cover_contract(sources: &[ThemeSource]) {
     for source in sources {
         for token in LEAF_SEMANTIC_TOKEN_CONTRACT {

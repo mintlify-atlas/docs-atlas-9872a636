@@ -1,7 +1,7 @@
 ---
 title: "Extend or customize leaftext themes with the token contract"
 sidebarTitle: "Theming"
-description: "leaftext enforces a compile-time semantic token contract of ~100 CSS custom properties. Learn how themes are defined, compiled, and validated in the source."
+description: "leaftext enforces a compile-time semantic token contract of ~100 CSS custom properties. Learn how themes are defined, compiled, and validated."
 ---
 
 leaftext's theme system is built around a semantic token contract — a set of approximately 100 `--leaf-*` CSS custom properties that every theme must define. This contract is verified at compile time, guaranteeing that no token is ever undefined in any theme. If a token is missing, the Rust build fails with an explicit assertion error.

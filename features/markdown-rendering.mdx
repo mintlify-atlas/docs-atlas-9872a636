@@ -1,7 +1,7 @@
 ---
-title: "Markdown Rendering in leaftext: CommonMark + GFM"
+title: "Markdown Rendering in leaftext — CommonMark and GFM"
 sidebarTitle: "Markdown Rendering"
-description: "leaftext renders the full CommonMark spec and GitHub Flavored Markdown, plus GitHub extras: syntax highlighting, Mermaid, math, alerts, footnotes, and emoji."
+description: "leaftext renders CommonMark and GitHub Flavored Markdown, plus GitHub extras: syntax highlighting, Mermaid, math, alert callouts, footnotes, and emoji."
 ---
 
 leaftext renders Markdown using [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark) with CommonMark and GitHub Flavored Markdown extensions fully enabled. The Rust renderer runs in-process — there is no external process or network call, so rendering is instant regardless of document size.
@@ -153,7 +153,7 @@ Paths that escape the file's parent directory tree return HTTP 403. For example,
 
 ## Safe HTML
 
-Raw HTML inside Markdown is sanitized using [ammonia](https://github.com/nicowillis/ammonia) before it reaches the WebView.
+Raw HTML inside Markdown is sanitized using [ammonia](https://crates.io/crates/ammonia) before it reaches the WebView.
 
 **Permitted tags:**
 

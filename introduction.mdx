@@ -1,5 +1,5 @@
 ---
-title: "leaftext: A calm desktop reader for Markdown"
+title: "leaftext: Calm Desktop Markdown Reader for macOS"
 sidebarTitle: "Introduction"
 description: "leaftext renders Markdown locally on macOS, Windows, and Linux. No browser, no editor — just clean, complete rendering of your files."
 ---
@@ -29,7 +29,7 @@ Local images work too: relative paths (`./`, `../`), paths with spaces, nested d
 
 leaftext is a native **Rust** application. Windowing is handled by [tao](https://github.com/tauri-apps/tao) and the document is displayed inside a [wry](https://github.com/tauri-apps/wry) WebView — a platform-native web renderer (WKWebView on macOS, WebView2 on Windows, WebKitGTK on Linux). This means leaftext has a real native window and OS integration while still being able to render rich HTML output from Markdown.
 
-Markdown parsing is done by [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark). Before the rendered HTML is handed to the WebView, it passes through [ammonia](https://github.com/nicowillis/ammonia) for sanitization: scripts, styles, event handlers, and dangerous URLs are stripped, while the full set of safe GFM HTML tags is preserved.
+Markdown parsing is done by [pulldown-cmark](https://github.com/raphlinus/pulldown-cmark). Before the rendered HTML is handed to the WebView, it passes through [ammonia](https://github.com/rust-ammonia/ammonia) for sanitization: scripts, styles, event handlers, and dangerous URLs are stripped, while the full set of safe GFM HTML tags is preserved.
 
 The result is a rendering pipeline that is both complete and safe — you can open any Markdown file without worrying about what it might contain.
 
